@@ -39,15 +39,29 @@ def tidCrawler(pathOut):
 
 
 def crawlData(tids):
+	start_time = time.time()
 	output = []
 	i = 0
+	success = 0
+	fail = 0
 	for tid in tids:
 		i +=1
+		print tid
 		url = "http://www.ratemyprofessors.com/ShowRatings.jsp?tid=" + tid
-		response = urllib2.urlopen(url)
-		if(re.search('AddRating', response.geturl())):
+		response = None
+		try:
+			response = urllib2.urlopen(url)
+		except urllib2.HTTPError, e:
+			print e.code, ",", tid
+			fail +=1
 			continue
+
+		if re.search('AddRating', response.geturl()) or response == None:
+			fail +=1
+			continue
+
 		html_doc = response.read()
+		success +=1
 		soup = BeautifulSoup(html_doc)
 
 		# basic information: fname, lname, univ, pos, dept
@@ -83,18 +97,18 @@ def crawlData(tids):
 		tagbox = rating_breakdown.find('div', {'class':'tag-box'})
 		tagbox_choosetags = tagbox.find_all('span',{'class':'tag-box-choosetags'})
 		taglist = list()
-		for t in tagbox_choosetags:
-			count = t.b.extract()
-			count = re.sub('[^0-9]', '', count.getText())
-			tagname = t.getText().strip()
-			taglist.append(tuple(tagname, count))
-
+		if(len(tagbox_choosetags)!=0):
+			for t in tagbox_choosetags:
+				count = t.b.extract()
+				count = re.sub('[^0-9]', '', count.getText())
+				tagname = t.getText().strip()
+				taglist.append(tuple([tagname, count]))
 
 		# reviews
 		pageNum=1
 		ratings = []
 		while True:
-			url = "http://www.ratemyprofessors.com/paginate/professors/ratings?tid=224484&page="+str(pageNum)
+			url = "http://www.ratemyprofessors.com/paginate/professors/ratings?tid="+tid+"&page="+str(pageNum)
 			response = urllib2.urlopen(url)
 			json_str = response.read()
 			js = json.loads(json_str)
@@ -107,12 +121,14 @@ def crawlData(tids):
 		data = {'tid': tid, 'fname':fname, 'lname': lname, 'univ':univ, 'pos':pos, 'dept':dept, 'quality':overall_quality, 
 		'avg_grade':avg_grade, 'hotness':hotness, 'helpfulness':helpfulness, 'clarity':clarity, 'easiness':easiness,
 		'tags':taglist, 'ratings':ratings}
-		output.append(json.dumps(data)) 
-		time.sleep(5)
-
-		if i % (len(tids)/50) and len(tids)>100:
-			print("%.2f %% complete" % ( i/float(len(tids)) * 100.0))
+		output.append(json.dumps(data))
+		time.sleep(3)
+		if(len(tids)>100):
+			if i % 100 ==0:
+				print("%.2f %% complete" % ( i/float(len(tids)) * 100.0))
 	# end of the loop
+	print("total: %d, success: %d, fail: %d " % (i, success, fail))
+	print("--- %s seconds ---" % (time.time() - start_time))
 	return output
 
 
@@ -141,7 +157,11 @@ def readJson(path):
 #import crawler
 #reload(crawler)
 #tids = crawler.readTid("./tids-umich.txt")
+#tids = tids[500:]
+#tids = crawler.readTid("./tids-uiuc.txt")
+#tids = crawler.readTid("./tids-uc.txt")
+#tids = crawler.readTid("./tids-test.txt")
 #output = crawler.crawlData(tids)
 #crawler.writeJsonOutput("./umich.json", output)
-# output = crawler.readJson("./umich.json")
+# test = crawler.readJson("./umich.json")
 
