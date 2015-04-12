@@ -1,7 +1,7 @@
 # Hotness classifier for RateMyProfessor
 
 ## Feautres
-There are three classifiers for each type of data, and here are specific lists of features for each classifier.
+There are three classifiers for each type of data, and here are specific lists of features for each classifier. (feature name: descriptions)
 
 **Label:**
   * hotness: Hotness (binary, either hot or not hot)
