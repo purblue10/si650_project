@@ -4,7 +4,7 @@
 There are three classifiers for each type of data, and here are specific lists of features for each classifier.
 
 Label:
-  hotness: Hotness (binary, either hot or not hot)
+  * hotness: Hotness (binary, either hot or not hot)
 
 For classifier1:
   * quality: Overall Quality [1-5]
@@ -17,16 +17,16 @@ For classifier1:
   * takenForCredit (in ratings): binary (either yes or no)
 
 For classifier2:
-  teacherRatingTags (in ratings): list of tags
+  * teacherRatingTags (in ratings): list of tags
   
 For classifier3:
-  rComments (in ratings): list of comments
+  * rComments (in ratings): list of comments
 
 Additional information:
-  helpCount / notHelpCount (in ratings)
-  attendance (in ratings): binary
-  onlineClass (in ratings): binary
-  rDate (in ratings)
+  * helpCount / notHelpCount (in ratings)
+  * attendance (in ratings): binary
+  * onlineClass (in ratings): binary
+  * rDate (in ratings)
 
 ## Classifiers
 
