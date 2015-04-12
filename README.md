@@ -7,7 +7,8 @@ Label:
   hotness: Hotness (binary, either hot or not hot)
 
 For classifier1:
-  quality: Overall Quality [1-5]\n
+  quality: Overall Quality [1-5]
+  
   avg_grade: Average Grade [F-A+]
   helpfulness: Helpfulness [1-5]
   clarity: Clarity [1-5]
