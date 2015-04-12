@@ -1,0 +1,50 @@
+tid
+fname
+lname
+univ
+pos
+dept: categorical
+
+quality: numerics
+avg_grade : numerics
+hotness: label
+
+helpfulness: numeric
+clarity: numeric
+easiness: numeric
+
+tags: numeric 
+
+ratings
+
+
+
+
+
+
+rErrorMsg
+rClass
+rTextBookUse
+easyColor
+teacherGrade
+rEasy
+rClarity
+usefulGrouping
+rInterest
+sId
+quality
+id
+rStatus
+attendance
+teacherRatingTags
+rComments
+rDate
+takenForCredit
+onlineClass
+notHelpCount
+rHelpful
+teacher
+helpColor
+unUsefulGrouping
+helpCount
+clarityColor

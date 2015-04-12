@@ -162,6 +162,6 @@ def readJson(path):
 #tids = crawler.readTid("./tids-uc.txt")
 #tids = crawler.readTid("./tids-test.txt")
 #output = crawler.crawlData(tids)
-#crawler.writeJsonOutput("./umich.json", output)
+#crawler.writeJsonOutput("./uiuc-2.json", output)
 # test = crawler.readJson("./umich.json")
 
