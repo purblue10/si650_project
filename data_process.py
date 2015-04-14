@@ -12,6 +12,7 @@ import json
 import random
 import numpy
 import time
+import misc
 
 def form_matrix(inFile, k=0, type=0):
 	if type>3 or type<0:
@@ -73,8 +74,10 @@ def form_matrix(inFile, k=0, type=0):
 					if rating['takenForCredit'] != 'Yes':
 						TakenCredit += 1.0
 					
-					tp = (rating['rComments'], rating['helpCount'], rating['notHelpCount'])
-					toAdd3['text'].append(tp)
+					if type==0 or type==3:
+						comment = misc.setenceProcessing(rating['rComments'])
+						tp = (comment, rating['helpCount'], rating['notHelpCount'])
+						toAdd3['text'].append(tp)
 
 					NumRate += 1.0
 

@@ -28,23 +28,34 @@ class LemmaTokenizer(object):
 	def __call__(self, doc):
 		return [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
 
+
+
+
 # train: category, text
 # text: id, text
 train_path = "./data/train.json"
 test_path = "./data/test.json"
 
-data = dp.form_matrix(train_path, type=3)
+train = dp.form_matrix(train_path, type=3)
+test = dp.form_matrix(test_path, type=3)
 
-train_text, train_y = misc.readData(train_path)
-test_text, test_Id = misc.readData(test_path)
+
+train_text, train_y = misc.getTextAndLabel(train)
+test_text, test_y = misc.getTextAndLabel(test)
+
+
 
 ##### vectorization
 # vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', sublinear_tf=True)
-vectorizer = TfidfVectorizer(analyzer='word', stop_words='english',sublinear_tf=True, tokenizer=LemmaTokenizer())
-vectorizer = TfidfVectorizer(analyzer='word', stop_words='english',sublinear_tf=True, tokenizer=LemmaTokenizer(), ngram_range=(1,2))
+vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=LemmaTokenizer())
+vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=LemmaTokenizer(), ngram_range=(1,2))
 vectorizer.fit(train_text)
+stop = vectorizer.stop_words_
+stop = vectorizer.get_stop_words()
 train_X = vectorizer.transform(train_text)
 test_X = vectorizer.transform(test_text)
+
+
 
 
 vectorizer.get_feature_names()

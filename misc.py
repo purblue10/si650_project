@@ -19,7 +19,6 @@ from nltk.tokenize import RegexpTokenizer
 from nltk.stem import WordNetLemmatizer
 
 
-# eval_path = "./result/eval.txt"
 def check_special_characters(sent):
    while(re.search('[^a-zA-Z0-9\-\+\'\"\#\*\@\!\?\/\&\(\)\:\;\,\.\s]',sent)):
       sent = re.sub('[^a-zA-Z0-9\-\+\'\"\#\*\@\!\?\/\&\(\)\:\;\,\.\s]','',sent)
@@ -43,6 +42,11 @@ def condensing(sent):
    sent = re.sub('[^a-zA-Z0-9\s]',' ',sent).strip()
    return re.sub('[0-9]','',sent).strip()
 
+def setenceProcessing(sent):
+   sent = check_special_characters(sent)
+   sent = condensing(sent)
+   return sent
+
 def readData(path):
    data = []
    with open(path,'r') as reader:
@@ -61,6 +65,18 @@ def writeResult(path, result):
    writer = csv.writer(open(path, 'wb', buffering=0))
    writer.writerows([("Id","Category")])
    writer.writerows(output)
+
+
+def getTextAndLabel(data):
+   data_label = [ row['label'] for row in data]
+   data_text = []
+   for row in data:
+      text = ""
+      for line in data[0]['text']:
+         text += line[0]+" "
+      data_text.append(text)
+   data_text = [" ".join([ line[0] for line in row['text']]) for row in data]
+   return data_text, data_label
 
 def getParameters(clf, feature_model):
    # feature model
