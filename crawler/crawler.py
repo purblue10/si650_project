@@ -4,7 +4,7 @@ import time
 import re 
 
 # pathOut = "./tids.txt"
-
+# http://www.ratemyprofessors.com/ShowRatings.jsp?tid=1662761
 def tidCrawler(pathOut):
 	i=0
 	tids = set()

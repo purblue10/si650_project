@@ -1,16 +1,23 @@
 #####Author: Wizard
 #Note:
 #Function return to 3 matrix: clf1, clf2, clf3
-#default k = 0, all json file will be processed
+#@param:
+#	k: default k = 0, all json file will be processed
+#	type: return only selected type of data(clf1, clf2, or clf3). Default type=0 to return all data
 #clf1 = [label, [quality, avg_grade, helpfulness, clarity, easiness, avg_interest, avg_textBookUse, avg_takenCredit, num_of_rating]]
 #clf2 = [label, [tags]]
 #clf3 = [label, str]
+
 import json
 import random
 import numpy
+import time
 
-
-def form_matrix(inFile, k=0):
+def form_matrix(inFile, k=0, type=0):
+	if type>3 or type<0:
+		print "type value error (should be 0, 1, 2, or 3)"
+		return None
+	start_time = time.time()
 	count = 0
 	clf1 = []
 	clf2 = []
@@ -21,11 +28,13 @@ def form_matrix(inFile, k=0):
 			#print data
 			if k == 0 or count < k: 
 				data_json = json.loads(data)
+				tid = data_json['tid']
 				toAdd1 = [0, []]
 				toAdd2 = [0, []]
-				toAdd3 = [0, '']
+				toAdd3 = {'label':0, 'text':[], 'tid':tid, }
 				if data_json['hotness'] != 'cold-chili':
-					toAdd1[0] = toAdd2[0] = toAdd3[0] = 1
+					toAdd1[0] = toAdd2[0] =  1
+					toAdd3['label'] = 1
 				toAdd1[1].append(float(data_json['quality']))
 				toAdd1[1].append(data_json['avg_grade'])
 				toAdd1[1].append(float(data_json['helpfulness']))
@@ -64,7 +73,8 @@ def form_matrix(inFile, k=0):
 					if rating['takenForCredit'] != 'Yes':
 						TakenCredit += 1.0
 					
-					toAdd3[1] += rating['rComments'] + ' '					
+					tp = (rating['rComments'], rating['helpCount'], rating['notHelpCount'])
+					toAdd3['text'].append(tp)
 
 					NumRate += 1.0
 
@@ -80,8 +90,17 @@ def form_matrix(inFile, k=0):
 				clf3.append(toAdd3)
 			else:
 				break
+	print("Numer of lines: %d lines" % (count))
+	print("--- %s seconds ---" % (time.time() - start_time))
+	if(type==0):
+		return clf1, clf2, clf3
+	elif(type==1):
+		return clf1
+	elif(type==2):
+		return clf2
+	elif(type==3):
+		return clf3
 
-	return clf1, clf2, clf3
 
 
 # mtx1, mtx2, mtx3 = form_matrix('umich.json', 1)
