@@ -2,3 +2,7 @@
 *.json
 
 *.json
+
+data/uiuc.json
+
+data/umich.json
