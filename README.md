@@ -3,7 +3,7 @@
 ## Data
 Total number of data: 33565
  * cold-chili: 23905 (70%) / # number of ratings: mean=12.7, max=737, min=1
- * hot-chili : 9660 (30%) / # number of ratings: mean=10.5, max=426, min=1
+ * hot-chili : 9660 (30%) / # number of ratings: mean=10.5, max=426, min=1  
  ** warm-chili: 8888
  ** steamy-chili: 589
  ** scorching-chili: 184
