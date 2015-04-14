@@ -4,7 +4,7 @@
 There are three classifiers for each type of data, and here are specific lists of features for each classifier. <br> (feature name: descriptions)
 
 **Label:**
-  * hotness: Hotness (binary, either hot or not hot)
+  * hotness: Hotness [cold-chili, warm-chili, steamy-chili, scorching-chili]
 
 **For classifier1:**
   * quality: Overall Quality [1-5]
