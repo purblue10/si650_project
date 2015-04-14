@@ -8,7 +8,7 @@ Total number of data: 33565
  ** steamy-chili: 589
  ** scorching-chili: 184
 
-**Train data: 30065 (cold:21455, hot:8610)**
+**Train data: 30065 (cold:21455, hot:8610)**  
 **Test data: 3500 (cold:2450, hot:1050)**
 
 ## Feautres
