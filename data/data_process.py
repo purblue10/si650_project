@@ -5,11 +5,12 @@
 #clf1 = [label, [quality, avg_grade, helpfulness, clarity, easiness, avg_interest, avg_textBookUse, avg_takenCredit, num_of_rating]]
 #clf2 = [label, [tags]]
 #clf3 = [label, str]
-
 import json
+import random
+import numpy
+
 
 def form_matrix(inFile, k=0):
-	
 	count = 0
 	clf1 = []
 	clf2 = []
@@ -83,8 +84,72 @@ def form_matrix(inFile, k=0):
 	return clf1, clf2, clf3
 
 
-mtx1, mtx2, mtx3 = form_matrix('umich.json', 1)
-print mtx1
-print mtx2
-print mtx3
-	
+# mtx1, mtx2, mtx3 = form_matrix('umich.json', 1)
+# print mtx1
+# print mtx2
+# print mtx3
+
+
+# total number of data: 33565
+# cold-chili: 23905 (70%) / mean: 12.7, max: 737, min:1
+# > cold : 9660 (30%) / mean: 10.5, max:426, min:1
+# warm-chili: 8888
+# steamy-chili: 589
+# scorching-chili: 184
+
+def getTrainTestPairs(path):
+	reader = open(path, 'r')
+	hotness_tid = {}
+	data = {}
+	for line in reader:
+		js = json.loads(line)
+		hot = js['hotness']
+		tid = js['tid']
+		N_ratings = len(js['ratings'])
+		tp = (tid, N_ratings)
+		if hot not in hotness_tid:
+			hotness_tid[hot] = [tp]
+		else:
+			hotness_tid[hot].append(tp)
+		data[tid] = js
+
+	cold = [  tp for tp in hotness_tid['cold-chili'] ]
+	warm = [  tp for tp in hotness_tid['warm-chili'] ]
+	steamy = [  tp for tp in hotness_tid['steamy-chili'] ]
+	scorching = [  tp for tp in hotness_tid['scorching-chili'] ]
+	hot = warm + steamy + scorching
+	total = cold + hot
+
+	cold_test = random.sample(set(cold), 2450)
+	hot_test = random.sample(set(hot), 1050)
+
+	cold_stat=[numpy.mean([  tp[1] for tp in cold_test]), numpy.max([  tp[1] for tp in cold_test]), numpy.min([  tp[1] for tp in cold_test])]
+	hot_stat=[numpy.mean([  tp[1] for tp in hot_test]), numpy.max([  tp[1] for tp in hot_test]), numpy.min([  tp[1] for tp in hot_test])]
+	print "cold statistics in test: ", cold_stat
+	print "hot statistics in test", hot_stat
+
+	test_tp = cold_test+hot_test
+	test_tids = set([ tp[0] for tp in test_tp])
+	train = []
+	test = []
+	for key in data.keys():
+		if key in test_tids:
+			test.append(data[key])
+		else:
+			train.append(data[key])
+	return train, test
+
+def writerTrainTest(path):
+	train, test = getTrainTestPairs(path)
+	writer = open("train.json", 'w')
+	for line in train:
+		writer.write(json.dumps(line)+"\n")
+	writer.close()
+	writer = open("test.json", 'w')
+	for line in test:
+		writer.write(json.dumps(line)+"\n")
+	writer.close()
+
+
+
+#data_process.writerTrainTest("./data.json")
