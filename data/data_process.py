@@ -61,7 +61,7 @@ def form_matrix(inFile, k=0):
 					elif rating['rTextBookUse'] == 'Essential to passing':
 						TextBookUse += 5.0
 
-					if rating['takenForCredit'] != 'N/A':
+					if rating['takenForCredit'] != 'Yes':
 						TakenCredit += 1.0
 					
 					toAdd3[1] += rating['rComments'] + ' '					
