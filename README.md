@@ -4,9 +4,9 @@
 Total number of data: 33565
  * cold-chili: 23905 (70%) / # number of ratings: mean=12.7, max=737, min=1
  * hot-chili : 9660 (30%) / # number of ratings: mean=10.5, max=426, min=1  
- ** warm-chili: 8888
- ** steamy-chili: 589
- ** scorching-chili: 184
+ 	+ warm-chili: 8888  
+ 	+ steamy-chili: 589  
+ 	+ scorching-chili: 184
 
 **Train data: 30065 (cold:21455, hot:8610)**  
 **Test data: 3500 (cold:2450, hot:1050)**
