@@ -45,7 +45,6 @@ def form_matrix(inFile, k=0):
 				for rating in data_json['ratings']:
 					#if rating['teacherRatingTags']:
 					#	toAdd2[1] += rating['teacherRatingTags']
-
 					if rating['rInterest'] == 'Meh':
 						Interest += 1.0
 					elif rating['rInterest'] == 'Low':
@@ -56,7 +55,6 @@ def form_matrix(inFile, k=0):
 						Interest += 4.0
 					elif rating['rInterest'] == 'It\'s my life':
 						Interest += 5.0
-					
 					if rating['rTextBookUse'] == 'What textbook?':
 						TextBookUse += 1.0
 					elif rating['rTextBookUse'] == 'Barely cracked it open':
@@ -67,19 +65,14 @@ def form_matrix(inFile, k=0):
 						TextBookUse += 4.0
 					elif rating['rTextBookUse'] == 'Essential to passing':
 						TextBookUse += 5.0
-
 					if rating['takenForCredit'] != 'Yes':
 						TakenCredit += 1.0
-					
 					#toAdd3[1] += rating['rComments'] + ' '					
-
 					NumRate += 1.0
-
 				toAdd1[1].append(float(Interest/NumRate))
 				toAdd1[1].append(float(TextBookUse/NumRate))
 				toAdd1[1].append(float(TakenCredit/NumRate))
 				toAdd1[1].append(float(NumRate))
-
 				data = data_file.readline()
 				count += 1
 				clf1.append(toAdd1)
@@ -87,29 +80,38 @@ def form_matrix(inFile, k=0):
 				#clf3.append(toAdd3)
 			else:
 				break
-
 	return clf1
 	#return clf1, clf2, clf3
 
 #mtx1, mtx2, mtx3 = form_matrix('umich.json', 1)
-mtx1 = form_matrix('train.json', 0)
-
-# total number of data: 33565
-# cold-chili: 23905 (70%) / mean: 12.7, max: 737, min:1
-# > cold : 9660 (30%) / mean: 10.5, max:426, min:1
-# warm-chili: 8888
-# steamy-chili: 589
-# scorching-chili: 184
-
-output_csv = csv.writer(open('train.csv','wb',buffering=0))
-output_test_cate = csv.writer(open('train_class.csv','wb',buffering=0))
+# mtx1 = form_matrix('train.json', 1)
 
 
-for line in mtx1:
-    output_csv.writerow(line[1])
-    output_test_cate.writerow(line)
+# X=[]
+# Y=[]
+# for line in mtx1:
+# 	X.append(line[0])
+# 	Y.append(line[1])
 
-#X = np.array(X)
 
-#clf = svm.SVC()
-#clf.fit(X, Y)
+
+# X=np.array(X)
+# # total number of data: 33565
+# # cold-chili: 23905 (70%) / mean: 12.7, max: 737, min:1
+# # > cold : 9660 (30%) / mean: 10.5, max:426, min:1
+# # warm-chili: 8888
+# # steamy-chili: 589
+# # scorching-chili: 184
+
+# output_csv = csv.writer(open('train.csv','wb',buffering=0))
+# output_test_cate = csv.writer(open('train_class.csv','wb',buffering=0))
+
+
+# for line in mtx1:
+#     output_csv.writerow(line[1])
+#     output_test_cate.writerow(line)
+
+# #X = np.array(X)
+
+# #clf = svm.SVC()
+# #clf.fit(X, Y)
