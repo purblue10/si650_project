@@ -22,7 +22,23 @@ from nltk import word_tokenize
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import WordNetLemmatizer
 
+#######
+train = dp.form_matrix(train_path, type=1)
+test = dp.form_matrix(test_path, type=1)
 
+train_X = [ row[1][0:1]+row[1][2:]  for row in train]
+train_y = [ row[0]  for row in train]
+test_X = [ row[1][0:1]+row[1][2:]  for row in train]
+test_y = [ row[0]  for row in test]
+
+
+train_X = np.array(train_X)
+train_y = np.array(train_y)
+
+
+
+
+##### thrid
 class LemmaTokenizer(object):
 	def __init__(self):
 		self.wnl = WordNetLemmatizer()
