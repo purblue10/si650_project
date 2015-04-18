@@ -17,7 +17,7 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.feature_selection import chi2, SelectKBest
 from sklearn import cross_validation
 from sklearn.metrics import f1_score
-
+from sklearn.ensemble import AdaBoostClassifier
 from nltk import word_tokenize
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import WordNetLemmatizer
@@ -30,18 +30,17 @@ class LemmaTokenizer(object):
 
 
 
-
 # train: category, text
 # text: id, text
 train_path = "./data/train.json"
 test_path = "./data/test.json"
 
-train = dp.form_matrix(train_path, type=3)
-test = dp.form_matrix(test_path, type=3)
+train1, train2, train3 = dp.form_matrix(train_path, type=0)
+test1, test2, test3 = dp.form_matrix(test_path, type=0)
 
 
-train_text, train_y = misc.getTextAndLabel(train)
-test_text, test_y = misc.getTextAndLabel(test)
+train_text, train_y = misc.getTextAndLabel(train3[:1000])
+test_text, test_y = misc.getTextAndLabel(test3[:1000])
 
 
 
@@ -52,8 +51,8 @@ vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=Tr
 vectorizer.fit(train_text)
 stop = vectorizer.stop_words_
 stop = vectorizer.get_stop_words()
-train_X = vectorizer.transform(train_text)
-test_X = vectorizer.transform(test_text)
+train_X3 = vectorizer.transform(train_text)
+test_X3 = vectorizer.transform(test_text)
 
 
 
@@ -64,7 +63,30 @@ vectorizer.get_feature_names()
 nFeature = 500
 
 ### chi-square
-ch2, train_X_ch2, test_X_ch2 = fs.chisq(train_X, train_y, test_X, 20000)
+ch2, train_X_ch2, test_X_ch2 = fs.chisq(train_X3, train_y, test_X3, 2000)
+
+clf3 = svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500)
+clf3.fit(train_X_ch2, train_y)
+
+
+
+
+train_X1 = [ row[1][0:1]+row[1][2:]  for row in train1[:1000]]
+train_y1 = [ row[0]  for row in train1]
+test_X1 = [ row[1][0:1]+row[1][2:]  for row in train1]
+test_y1 = [ row[0]  for row in test]
+
+
+train_X1 = np.array(train_X1)
+train_y1 = np.array(train_y1)
+
+
+clf = svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500)
+clf = svm.SVC()
+clf.fit(train_X1, train_y1)
+
+
+
 
 ## Classifier
 clf2 = OneVsRestClassifier(svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500))

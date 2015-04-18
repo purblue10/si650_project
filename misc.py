@@ -136,3 +136,33 @@ def runCV(clf, train_X, train_y, feature_model, cvn):
 
 
 
+
+
+
+# grades = {}
+# for row in train:
+#    g = row[1][1]
+#    if g not in grades:
+#       grades[g]=1
+#    else:
+#       grades[g]=1+grades[g]
+
+# A+ : 844
+# A : 2936
+# A- : 1691
+
+# B+ : 985
+# B : 972
+# B- : 410
+
+# C+ : 219
+# C : 234
+# C- : 97
+
+# D+ : 41
+# D : 32
+# D- : 18
+
+# F : 22
+
+# N/A : 21564
