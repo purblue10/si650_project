@@ -23,36 +23,45 @@ from nltk import word_tokenize
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import WordNetLemmatizer
 from sklearn.linear_model import LogisticRegression
-
-class LemmaTokenizer(object):
-	def __init__(self):
-		self.wnl = WordNetLemmatizer()
-	def __call__(self, doc):
-		return [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
+from sklearn.feature_extraction import DictVectorizer
 
 
-
-# train: category, text
-# text: id, text
 train_path = "./data/train.json"
 test_path = "./data/test.json"
 
-train = dp.form_matrix(train_path, type=3)
-test = dp.form_matrix(test_path, type=3)
+
+train1, train2, train3 = dp.form_matrix(train_path, type=0)
+test1, test2, test3 = dp.form_matrix(test_path, type=0)
+
+# 1. Get matrice
+## first classifier
+train_X1 = [ row[1][0:1]+row[1][2:]  for row in train1]
+train_y = [ row[0]  for row in train1]
+test_X1 = [ row[1][0:1]+row[1][2:]  for row in test1]
+test_y = [ row[0]  for row in test1]
 
 
-train_text, train_y = misc.getTextAndLabel(train)
-test_text, test_y = misc.getTextAndLabel(test)
+## second classifier
+train_X2 = []
+for item in train2:
+	dic = {}
+	for tag in item[1]:
+		dic[tag] = 1 if  tag not in dic else dic[tag]+1
+	train_X2.append(dic)
 
+dicVectorizer = DictVectorizer(sparse=False)
+train_X2 = dicVectorizer.fit_transform(X_train)
 
+## thrid classifier
+train_text, train_y = misc.getTextAndLabel(train3)
+test_text, test_y = misc.getTextAndLabel(test3)
 
-##### vectorization
-# vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', sublinear_tf=True)
-vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=LemmaTokenizer())
-vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=LemmaTokenizer(), ngram_range=(1,2))
+vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=misc.LemmaTokenizer(), ngram_range=(1,2))
+
 vectorizer.fit(train_text)
-train_X = vectorizer.transform(train_text)
-test_X = vectorizer.transform(test_text)
+train_X3 = vectorizer.transform(train_text)
+test_X3 = vectorizer.transform(test_text)
+
 
 
 
@@ -78,7 +87,7 @@ score_ada = testCV(ada, train_X_ch2, train_y, 5)
 
 def testCV(clf, train_X, train_y, cvn):
 	start_time = time.time()
-	scores = cross_validation.cross_val_score(clf, train_X, train_y, cv=cvn)
+	scores = cross_validation.cross_val_score(clf, train_X_ch2, train_y, cv=5)
 	mean = "{:.5f}".format(scores.mean())
 	sd = "{:.5f}".format(scores.std()*2)
 	line = "accuracy: "+ str(mean) +" (+/- " + str(sd) + ")" +", "

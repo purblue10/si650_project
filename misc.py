@@ -18,6 +18,11 @@ from nltk import word_tokenize
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import WordNetLemmatizer
 
+class LemmaTokenizer(object):
+   def __init__(self):
+      self.wnl = WordNetLemmatizer()
+   def __call__(self, doc):
+      return [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
 
 def check_special_characters(sent):
    while(re.search('[^a-zA-Z0-9\-\+\'\"\#\*\@\!\?\/\&\(\)\:\;\,\.\s]',sent)):

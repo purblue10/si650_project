@@ -55,8 +55,6 @@ train_X = vectorizer.transform(train_text)
 test_X = vectorizer.transform(test_text)
 
 
-
-
 # stop = vectorizer.stop_words_
 # stop = vectorizer.get_stop_words()
 # vectorizer.get_feature_names()
@@ -78,7 +76,7 @@ score_ada = testCV(ada, train_X_ch2, train_y, 5)
 
 def testCV(clf, train_X, train_y, cvn):
 	start_time = time.time()
-	scores = cross_validation.cross_val_score(clf, train_X, train_y, cv=cvn)
+	scores = cross_validation.cross_val_score(clf, train_X_ch2, train_y, cv=5)
 	mean = "{:.5f}".format(scores.mean())
 	sd = "{:.5f}".format(scores.std()*2)
 	line = "accuracy: "+ str(mean) +" (+/- " + str(sd) + ")" +", "
