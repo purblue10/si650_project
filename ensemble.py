@@ -56,9 +56,11 @@ train_X2 = dicVectorizer.fit_transform(X_train)
 train_text, train_y = misc.getTextAndLabel(train3)
 test_text, test_y = misc.getTextAndLabel(test3)
 
-vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=misc.LemmaTokenizer(), ngram_range=(1,2))
+vectorizer22 = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=misc.LemmaTokenizer(), ngram_range=(1,2))
 
-vectorizer.fit(train_text)
+vectorizer22.fit(train_text)
+vectorizer22.fit(train_text)
+vectorizer22.fit(train_text)
 train_X3 = vectorizer.transform(train_text)
 test_X3 = vectorizer.transform(test_text)
 
