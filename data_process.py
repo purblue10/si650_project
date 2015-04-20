@@ -142,8 +142,8 @@ def getTrainTestPairs(path):
 	hot = warm + steamy + scorching
 	total = cold + hot
 
-	cold_test = random.sample(set(cold), 2450)
-	hot_test = random.sample(set(hot), 1050)
+	cold_test = random.sample(set(cold), 4900)
+	hot_test = random.sample(set(hot), 2100)
 
 	cold_stat=[numpy.mean([  tp[1] for tp in cold_test]), numpy.max([  tp[1] for tp in cold_test]), numpy.min([  tp[1] for tp in cold_test])]
 	hot_stat=[numpy.mean([  tp[1] for tp in hot_test]), numpy.max([  tp[1] for tp in hot_test]), numpy.min([  tp[1] for tp in hot_test])]
@@ -163,11 +163,11 @@ def getTrainTestPairs(path):
 
 def writerTrainTest(path):
 	train, test = getTrainTestPairs(path)
-	writer = open("train.json", 'w')
+	writer = open("./data/train.json", 'w')
 	for line in train:
 		writer.write(json.dumps(line)+"\n")
 	writer.close()
-	writer = open("test.json", 'w')
+	writer = open("./data/test.json", 'w')
 	for line in test:
 		writer.write(json.dumps(line)+"\n")
 	writer.close()

@@ -82,8 +82,8 @@ ch2, train_X3_ch2, test_X3_ch2 = fs.chisq(train_X3, train_y3, test_X3, 20000)
 
 #2. Classifier
 logit1 = LogisticRegression(penalty="l2", dual=True, C=10)
-score_logit = misc.testCV(logit1, train_X1, train_y, 5)
 logit1.fit(train_X1, train_y)
+#score_logit = misc.testCV(logit1, train_X1, train_y, 5)
 
 logit2 = LogisticRegression(penalty="l2", dual=True, C=500)
 logit2.fit(train_X2, train_y)
