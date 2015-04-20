@@ -18,6 +18,11 @@ from nltk import word_tokenize
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import WordNetLemmatizer
 
+class LemmaTokenizer(object):
+   def __init__(self):
+      self.wnl = WordNetLemmatizer()
+   def __call__(self, doc):
+      return [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
 
 def check_special_characters(sent):
    while(re.search('[^a-zA-Z0-9\-\+\'\"\#\*\@\!\?\/\&\(\)\:\;\,\.\s]',sent)):
@@ -133,6 +138,61 @@ def runCV(clf, train_X, train_y, feature_model, cvn):
    print("params: "+str(params))
    return scores
 
+def testCV(clf, train_X, train_y, cvn):
+	start_time = time.time()
+	scores = cross_validation.cross_val_score(clf, train_X, train_y, cv=cvn)
+	mean = "{:.5f}".format(scores.mean())
+	sd = "{:.5f}".format(scores.std()*2)
+	line = "accuracy: "+ str(mean) +" (+/- " + str(sd) + ")" +", "
+	print line
+	print("cross validation: --- %s seconds ---" % (time.time() - start_time))
+	return scores
+
+def evaluation(prediction, test_label):
+	n = len(test_label)
+	answer = []
+	for i in range(n):
+		if prediction[i]==test_label[i]:
+			answer.append((test_label[i], prediction[i],True))
+		else:
+			answer.append((test_label[i], prediction[i],False))
+	numTrue = len([ row for row in answer if row[2]==True])
+	numFalse = len([ row for row in answer if row[2]==False])
+	numTrue_zero = len([ row for row in answer if row[2]==True and row[1]==0])
+	numTrue_one = len([ row for row in answer if row[2]==True and row[1]==1])
+	n_zero = len([ row for row in answer if row[1]==0])
+	n_one = len([ row for row in answer if row[1]==1])
+	print("Total Accuracy: %0.5f " % (numTrue/float(n)))
+	print("0-label Accuracy: %0.5f (%d / %d)" % (numTrue_zero/float(n_zero), numTrue_zero, n_zero))
+	print("1-label Accuracy: %0.5f (%d / %d)" % (numTrue_one/float(n_one), numTrue_one, n_one))
+	return answer
 
 
 
+# grades = {}
+# for row in train:
+#    g = row[1][1]
+#    if g not in grades:
+#       grades[g]=1
+#    else:
+#       grades[g]=1+grades[g]
+
+# A+ : 844
+# A : 2936
+# A- : 1691
+
+# B+ : 985
+# B : 972
+# B- : 410
+
+# C+ : 219
+# C : 234
+# C- : 97
+
+# D+ : 41
+# D : 32
+# D- : 18
+
+# F : 22
+
+# N/A : 21564

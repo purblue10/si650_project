@@ -5,6 +5,7 @@ import time
 import fs
 import data_process as dp
 
+from sklearn.ensemble import AdaBoostClassifier
 from sklearn.decomposition import RandomizedPCA
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn import cross_validation
@@ -17,17 +18,17 @@ from sklearn.grid_search import GridSearchCV
 from sklearn.feature_selection import chi2, SelectKBest
 from sklearn import cross_validation
 from sklearn.metrics import f1_score
-
+from sklearn.ensemble import AdaBoostClassifier
 from nltk import word_tokenize
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import WordNetLemmatizer
+from sklearn.linear_model import LogisticRegression
 
 class LemmaTokenizer(object):
 	def __init__(self):
 		self.wnl = WordNetLemmatizer()
 	def __call__(self, doc):
 		return [self.wnl.lemmatize(t) for t in word_tokenize(doc)]
-
 
 
 
@@ -50,21 +51,63 @@ test_text, test_y = misc.getTextAndLabel(test)
 vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=LemmaTokenizer())
 vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=LemmaTokenizer(), ngram_range=(1,2))
 vectorizer.fit(train_text)
-stop = vectorizer.stop_words_
-stop = vectorizer.get_stop_words()
 train_X = vectorizer.transform(train_text)
 test_X = vectorizer.transform(test_text)
 
 
 
 
-vectorizer.get_feature_names()
+# stop = vectorizer.stop_words_
+# stop = vectorizer.get_stop_words()
+# vectorizer.get_feature_names()
 
 #### Dimenstion Reduction
-nFeature = 500
+ch2, train_X_ch2, test_X_ch2 = fs.chisq(train_X, train_y, test_X, 5000)
 
-### chi-square
+clf = svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500)
+score_svm = testCV(clf, train_X, train_y, 5)
+
+
 ch2, train_X_ch2, test_X_ch2 = fs.chisq(train_X, train_y, test_X, 20000)
+logit = LogisticRegression(penalty="l2", dual=True, C=500)
+score_logit = testCV(logit, train_X_ch2, train_y, 5)
+
+ch2, train_X_ch2, test_X_ch2 = fs.chisq(train_X, train_y, test_X, 20000)
+ada = AdaBoostClassifier(n_estimators=100)
+score_ada = testCV(ada, train_X_ch2, train_y, 5)
+
+def testCV(clf, train_X, train_y, cvn):
+	start_time = time.time()
+	scores = cross_validation.cross_val_score(clf, train_X, train_y, cv=cvn)
+	mean = "{:.5f}".format(scores.mean())
+	sd = "{:.5f}".format(scores.std()*2)
+	line = "accuracy: "+ str(mean) +" (+/- " + str(sd) + ")" +", "
+	print line
+	print("cross validation: --- %s seconds ---" % (time.time() - start_time))
+	return scores
+
+
+# clf3.fit(train_X_ch2, train_y)
+
+
+
+
+train_X1 = [ row[1][0:1]+row[1][2:]  for row in train1[:1000]]
+train_y1 = [ row[0]  for row in train1]
+test_X1 = [ row[1][0:1]+row[1][2:]  for row in train1]
+test_y1 = [ row[0]  for row in test]
+
+
+train_X1 = np.array(train_X1)
+train_y1 = np.array(train_y1)
+
+
+clf = svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500)
+clf = svm.SVC()
+clf.fit(train_X1, train_y1)
+
+
+
 
 ## Classifier
 clf2 = OneVsRestClassifier(svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500))
