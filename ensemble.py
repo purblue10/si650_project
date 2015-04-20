@@ -1,3 +1,4 @@
+import numpy as np
 import csv
 import re 
 import misc
@@ -40,39 +41,62 @@ train_y = [ row[0]  for row in train1]
 test_X1 = [ row[1][0:1]+row[1][2:]  for row in test1]
 test_y = [ row[0]  for row in test1]
 
+train_X1 = np.array(train_X1)
+test_X1 = test_X1.toarray()
+train_y = np.array(train_y)
+test_y = np.array(test_y)
 
 ## second classifier
 train_X2 = []
+test_X2 = []
 for item in train2:
 	dic = {}
 	for tag in item[1]:
 		dic[tag] = 1 if  tag not in dic else dic[tag]+1
 	train_X2.append(dic)
 
+for item in test2:
+	dic = {}
+	for tag in item[1]:
+		dic[tag] = 1 if  tag not in dic else dic[tag]+1
+	test_X2.append(dic)
+
 dicVectorizer = DictVectorizer(sparse=False)
-train_X2 = dicVectorizer.fit_transform(X_train)
+train_X2 = dicVectorizer.fit_transform(train_X2)
+dicVectorizer = DictVectorizer(sparse=False)
+test_X2 = dicVectorizer.fit_transform(test_X2)
 
 ## thrid classifier
-train_text, train_y = misc.getTextAndLabel(train3)
-test_text, test_y = misc.getTextAndLabel(test3)
+train_text, train_y3 = misc.getTextAndLabel(train3)
+test_text, test_y3 = misc.getTextAndLabel(test3)
 
-vectorizer22 = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=misc.LemmaTokenizer(), ngram_range=(1,2))
+vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=misc.LemmaTokenizer(), ngram_range=(1,2))
 
-vectorizer22.fit(train_text)
-vectorizer22.fit(train_text)
-vectorizer22.fit(train_text)
+vectorizer.fit(train_text)
+
 train_X3 = vectorizer.transform(train_text)
 test_X3 = vectorizer.transform(test_text)
 
+ch2, train_X3_ch2, test_X3_ch2 = fs.chisq(train_X3, train_y3, test_X3, 20000)
 
 
+#2. Classifier
+logit1 = LogisticRegression(penalty="l2", dual=True, C=10)
+score_logit = misc.testCV(logit1, train_X1, train_y, 5)
+logit1.fit(train_X1, train_y)
+
+logit2 = LogisticRegression(penalty="l2", dual=True, C=500)
+logit2.fit(train_X2, train_y)
+
+logit3 = LogisticRegression(penalty="l2", dual=True, C=500)
+logit3.fit(train_X3_ch2, train_y)
+
+#3. prediction
+predict1 = logit1.predict(test_X1)
+result = misc.evaluation(predict1.tolist(), test_y)
+result = prediction.tolist()
 
 
-# stop = vectorizer.stop_words_
-# stop = vectorizer.get_stop_words()
-# vectorizer.get_feature_names()
-
-#### Dimenstion Reduction
 ch2, train_X_ch2, test_X_ch2 = fs.chisq(train_X, train_y, test_X, 5000)
 
 clf = svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500)

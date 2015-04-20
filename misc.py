@@ -138,9 +138,34 @@ def runCV(clf, train_X, train_y, feature_model, cvn):
    print("params: "+str(params))
    return scores
 
+def testCV(clf, train_X, train_y, cvn):
+	start_time = time.time()
+	scores = cross_validation.cross_val_score(clf, train_X, train_y, cv=cvn)
+	mean = "{:.5f}".format(scores.mean())
+	sd = "{:.5f}".format(scores.std()*2)
+	line = "accuracy: "+ str(mean) +" (+/- " + str(sd) + ")" +", "
+	print line
+	print("cross validation: --- %s seconds ---" % (time.time() - start_time))
+	return scores
 
-
-
+def evaluation(prediction, test_label):
+	n = len(test_label)
+	answer = []
+	for i in range(n):
+		if prediction[i]==test_label[i]:
+			answer.append((test_label[i], prediction[i],True))
+		else:
+			answer.append((test_label[i], prediction[i],False))
+	numTrue = len([ row for row in answer if row[2]==True])
+	numFalse = len([ row for row in answer if row[2]==False])
+	numTrue_zero = len([ row for row in answer if row[2]==True and row[1]==0])
+	numTrue_one = len([ row for row in answer if row[2]==True and row[1]==1])
+	n_zero = len([ row for row in answer if row[1]==0])
+	n_one = len([ row for row in answer if row[1]==1])
+	print("Total Accuracy: %0.5f " % (numTrue/float(n)))
+	print("0-label Accuracy: %0.5f (%d / %d)" % (numTrue_zero/float(n_zero), numTrue_zero, n_zero))
+	print("1-label Accuracy: %0.5f (%d / %d)" % (numTrue_one/float(n_one), numTrue_one, n_one))
+	return answer
 
 
 
