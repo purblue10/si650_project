@@ -1,48 +1,62 @@
+from sklearn.grid_search import GridSearchCV
+from sklearn.metrics import f1_score
 from sklearn import svm
 import numpy as np
-import csv
+import data_process_forrating as dp
+from sklearn.naive_bayes import GaussianNB
+from sklearn.naive_bayes import MultinomialNB
+from sklearn.naive_bayes import BernoulliNB
+from sklearn import cross_validation
+from sklearn.linear_model import LogisticRegression
 
-#X_train = open('output_test.csv', 'rb').readlines()
-# X_train = csv.reader(open('train.csv', 'rb'))
-# Y_train = csv.reader(open('train_class.csv', 'rb'))
-# X_test = csv.reader(open('output_test_x.csv', 'rb'))
+train_path = "./data/train.json"
+test_path = "./data/test.json"
 
-train = dp.form_matrix(train_path, type=1)
+train = dp.form_matrix(train_path)
+test = dp.form_matrix(test_path)
 
-train_X = [ row[0:1]+row[2:]  for row in train]
+train_X = [ row[1]  for row in train]
 train_y = [ row[0]  for row in train]
+test_X = [ row[1]  for row in train]
+test_y = [ row[0]  for row in test]
 
 train_X = np.array(train_X)
 train_y = np.array(train_y)
 
+#1-SVM-RBF
+#clf = svm.SVC(kernel='rbf', C=1000, gamma=0.001, cache_size=1000)
+#clf = svm.SVC(kernel='rbf', cache_size=1000)
 
-X = []
-for line in X_train:
-	xline = []
-	for i in range(9):
-		xline.append(float(line[i]))
-	X.append(xline)
+#2-GNB
+#clf = GaussianNB()
 
-Y = []
-for line in Y_train:
-	Y.append(int(line[0]))
+#3-MultinomialNB
+#clf = MultinomialNB()
 
+#4-BernoulliNB
+#clf = BernoulliNB()
 
+#5-LinearSVM
+#clf = svm.SVC(kernel='linear')
 
-x = []
-for line in X_test:
-	xline = []
-	for i in range(9):
-		xline.append(float(line[i]))
-	x.append(xline)
-x = np.array(x)
+#6-LogisticRegression
+logit = LogisticRegression(penalty="l2", dual=True, C=1)
 
-clf = svm.SVC()
-# clf = svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500)
-clf.fit(X, Y)
+#Proper choice of C and gamma is critical to the SVM's performance.
 
-predict = clf.predict(x)
-output_csv = csv.writer(open('output_test_class.csv','wb', buffering=0))
+'''model = svm.SVC(kernel='rbf', cache_size=1000)
+param_grid = {
+    "C": [0.0001,0.001, 0.01, 0.1,1, 10, 100,1000,10000],
+    "gamma": [0.0001,0.001, 0.01, 0.1,1, 10, 100,1000,10000]
+}
+clf_grid = GridSearchCV(model, param_grid=param_grid, score_func=f1_score, cv=5)
+clf_grid.fit(train_X, train_y)'''
 
-for i in predict:
-    output_csv.writerow([i])
+#clf.fit(train_X, train_y)
+
+scores = cross_validation.cross_val_score(logit, train_X, train_y,cv=5, scoring='f1_weighted')
+scores.mean()
+#clf_grid.best_estimator_
+#clf_grid.grid_scores_
+#clf_grid.best_score_
+
