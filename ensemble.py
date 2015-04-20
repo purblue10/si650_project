@@ -93,8 +93,13 @@ logit3.fit(train_X3_ch2, train_y)
 
 #3. prediction
 predict1 = logit1.predict(test_X1)
-result = misc.evaluation(predict1.tolist(), test_y)
-result = prediction.tolist()
+result1 = misc.evaluation(predict1.tolist(), test_y)
+
+predict2 = logit2.predict(test_X2)
+result2 = misc.evaluation(predict2.tolist(), test_y)
+
+predict3 = logit3.predict(test_X3_ch2)
+result3 = misc.evaluation(predict3.tolist(), test_y)
 
 
 ch2, train_X_ch2, test_X_ch2 = fs.chisq(train_X, train_y, test_X, 5000)
