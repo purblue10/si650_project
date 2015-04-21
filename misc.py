@@ -1,7 +1,9 @@
 import csv
 import re 
 import time
-
+import data_process as dp
+import numpy as np
+import fs
 from sklearn.decomposition import RandomizedPCA
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn import cross_validation
@@ -13,10 +15,11 @@ from sklearn.decomposition import PCA
 from sklearn.grid_search import GridSearchCV
 from sklearn.feature_selection import chi2, SelectKBest
 from sklearn.metrics import f1_score
-
+from sklearn.feature_extraction import DictVectorizer
 from nltk import word_tokenize
 from nltk.tokenize import RegexpTokenizer
 from nltk.stem import WordNetLemmatizer
+from sklearn.metrics import roc_curve, auc
 
 class LemmaTokenizer(object):
    def __init__(self):
@@ -139,60 +142,111 @@ def runCV(clf, train_X, train_y, feature_model, cvn):
    return scores
 
 def testCV(clf, train_X, train_y, cvn):
-	start_time = time.time()
-	scores = cross_validation.cross_val_score(clf, train_X, train_y, cv=cvn)
-	mean = "{:.5f}".format(scores.mean())
-	sd = "{:.5f}".format(scores.std()*2)
-	line = "accuracy: "+ str(mean) +" (+/- " + str(sd) + ")" +", "
-	print line
-	print("cross validation: --- %s seconds ---" % (time.time() - start_time))
-	return scores
+   start_time = time.time()
+   scores = cross_validation.cross_val_score(clf, train_X, train_y, cv=cvn)
+   mean = "{:.5f}".format(scores.mean())
+   sd = "{:.5f}".format(scores.std()*2)
+   line = "accuracy: "+ str(mean) +" (+/- " + str(sd) + ")" +", "
+   print line
+   print("cross validation: --- %s seconds ---" % (time.time() - start_time))
+   return scores
 
-def evaluation(prediction, test_label):
-	n = len(test_label)
-	answer = []
-	for i in range(n):
-		if prediction[i]==test_label[i]:
-			answer.append((test_label[i], prediction[i],True))
-		else:
-			answer.append((test_label[i], prediction[i],False))
-	numTrue = len([ row for row in answer if row[2]==True])
-	numFalse = len([ row for row in answer if row[2]==False])
-	numTrue_zero = len([ row for row in answer if row[2]==True and row[1]==0])
-	numTrue_one = len([ row for row in answer if row[2]==True and row[1]==1])
-	n_zero = len([ row for row in answer if row[1]==0])
-	n_one = len([ row for row in answer if row[1]==1])
-	print("Total Accuracy: %0.5f " % (numTrue/float(n)))
-	print("0-label Accuracy: %0.5f (%d / %d)" % (numTrue_zero/float(n_zero), numTrue_zero, n_zero))
-	print("1-label Accuracy: %0.5f (%d / %d)" % (numTrue_one/float(n_one), numTrue_one, n_one))
-	return answer
+# mics.evaluation(prediction,test_y)
+def evaluation(prediction, test_label, echo=True):
+   n = len(test_label)
+   answer = []
+   for i in range(n):
+   	if prediction[i]==test_label[i]:
+   		answer.append((test_label[i], prediction[i],True))
+   	else:
+   		answer.append((test_label[i], prediction[i],False))
+   numTrue = len([ row for row in answer if row[2]==True])
+   numFalse = len([ row for row in answer if row[2]==False])
+   numTrue_zero = len([ row for row in answer if row[2]==True and row[1]==0])
+   numTrue_one = len([ row for row in answer if row[2]==True and row[1]==1])
+   n_zero = len([ row for row in answer if row[1]==0])
+   n_one = len([ row for row in answer if row[1]==1])
+   if echo == True:
+      print("Total Accuracy: %0.5f " % (numTrue/float(n)))
+      print("0-label Accuracy: %0.5f (%d / %d)" % (numTrue_zero/float(n_zero), numTrue_zero, n_zero))
+      print("1-label Accuracy: %0.5f (%d / %d)" % (numTrue_one/float(n_one), numTrue_one, n_one))
 
+   return answer
 
+def evaluation2(prediction, test_label, echo=True, process=False):
+   n = len(test_label)
+   prediction_label = prediction[0]
+   prediction_prob = prediction[1]
+   if process==True:
+      prediction_prob = np.array([row.tolist()[0] if len(row.tolist())==1 else row.tolist() for row in prediction[1]])
+   answer = []
+   for i in range(n):
+      if prediction_label[i]==test_label[i]:
+         answer.append((test_label[i], prediction_label[i],True))
+      else:
+         answer.append((test_label[i], prediction_label[i],False))
+   numTrue = len([ row for row in answer if row[2]==True])
+   numFalse = len([ row for row in answer if row[2]==False])
+   numTrue_zero = len([ row for row in answer if row[2]==True and row[1]==0])
+   numTrue_one = len([ row for row in answer if row[2]==True and row[1]==1])
+   n_zero = len([ row for row in answer if row[1]==0])
+   n_one = len([ row for row in answer if row[1]==1])
+   fpr, tpr, thresholds = roc_curve(test_label, prediction_prob[:, 1])
+   roc_auc = auc(fpr, tpr)
+   if echo == True:
+      print("Total Accuracy: %0.5f " % (numTrue/float(n)))
+      print("0-label Accuracy: %0.5f (%d / %d)" % (numTrue_zero/float(n_zero), numTrue_zero, n_zero))
+      print("1-label Accuracy: %0.5f (%d / %d)" % (numTrue_one/float(n_one), numTrue_one, n_one))
+      print "Area under the ROC curve : %f" % roc_auc
+      print "Precision : %f,  Recall %f" % (numTrue_one/float(n_one), numTrue_one/float(numTrue_one+n_zero-numTrue_zero))
+   return answer
 
-# grades = {}
-# for row in train:
-#    g = row[1][1]
-#    if g not in grades:
-#       grades[g]=1
-#    else:
-#       grades[g]=1+grades[g]
+def getData(train_path, test_path, typenum=0):
+   start_time = time.time()
+   train1, train2, train3 = dp.form_matrix(train_path, type=typenum)
+   test1, test2, test3 = dp.form_matrix(test_path, type=typenum)
+   
+   ## dataset 1
+   train_X1 = np.array([ row[1][0:1]+row[1][2:]  for row in train1])
+   test_X1 = np.array([ row[1][0:1]+row[1][2:]  for row in test1])
+   train_y = np.array([ row[0]  for row in train1])
+   test_y = np.array([ row[0]  for row in test1])
+   print("---Finish loading the first data")
 
-# A+ : 844
-# A : 2936
-# A- : 1691
+   ## dataset 2
+   train_X2 = []
+   test_X2 = []
+   for item in train2:
+      dic = {}
+      for tag in item[1]:
+         dic[tag] = 1 if  tag not in dic else dic[tag]+1
+      train_X2.append(dic)
 
-# B+ : 985
-# B : 972
-# B- : 410
+   for item in test2:
+      dic = {}
+      for tag in item[1]:
+         dic[tag] = 1 if  tag not in dic else dic[tag]+1
+      test_X2.append(dic)
 
-# C+ : 219
-# C : 234
-# C- : 97
+   dicVectorizer = DictVectorizer(sparse=False)
+   train_X2 = dicVectorizer.fit_transform(train_X2)
+   test_X2 = dicVectorizer.transform(test_X2)
+   print("---Finish loading the second data")
+   ## dataset 3
+   train_text, train_y3 = getTextAndLabel(train3)
+   test_text, test_y3 = getTextAndLabel(test3)
+   vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=LemmaTokenizer(), ngram_range=(1,2))
 
-# D+ : 41
-# D : 32
-# D- : 18
+   vectorizer.fit(train_text)
+   train_X3 = vectorizer.transform(train_text)
+   test_X3 = vectorizer.transform(test_text)
+   print train_X3.shape
+   ch2, train_X3, test_X3 = fs.chisq(train_X3, train_y3, test_X3, 20000)
+   train_Xtot = np.hstack((train_X1, train_X2, train_X3.toarray()))
+   test_Xtot = np.hstack((test_X1, test_X2, test_X3.toarray()))
+   print("---Finish loading the third data")
+   print("Finish loading data : --- %s seconds ---" % (time.time() - start_time))
 
-# F : 22
-
-# N/A : 21564
+   train_X = [train_X1, train_X2, train_X3, train_Xtot]
+   test_X = [test_X1, test_X2, test_X3, test_Xtot]
+   return train_X, test_X, train_y, test_y

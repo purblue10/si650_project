@@ -6,7 +6,19 @@ import misc
 import time
 import fs
 import data_process as dp
+# from DCS import dynamicClassifierSelection
+import DCS
+from brew.selection.dynamic.ola import OLA
+from brew.selection.dynamic.ola import OLA2
+from brew.selection.dynamic.lca import LCA
+from brew.selection.dynamic.lca import LCA2
+from brew.selection.dynamic.knora import *
+from brew.selection.dynamic.probabilistic import *
 
+from brew.generation.bagging import Bagging
+from brew.base import EnsembleClassifier
+
+from sklearn.neighbors import NearestNeighbors
 from sklearn.ensemble import AdaBoostClassifier
 from sklearn.decomposition import RandomizedPCA
 from sklearn.feature_extraction.text import TfidfVectorizer
@@ -27,69 +39,80 @@ from nltk.stem import WordNetLemmatizer
 from sklearn.linear_model import LogisticRegression
 from sklearn.feature_extraction import DictVectorizer
 from sklearn.linear_model import LogisticRegressionCV
+from sklearn.naive_bayes import GaussianNB
 
 train_path = "./data/data2/train.json"
 test_path = "./data/data2/test.json"
 
+## get data
+train_X, test_X, train_y, test_y = misc.getData(train_path, test_path, typenum=0)
 
-train1, train2, train3 = dp.form_matrix(train_path, type=0)
-test1, test2, test3 = dp.form_matrix(test_path, type=0)
+clf1 = LogisticRegression(penalty="l2", dual=False, C=5)
+clf2 = LogisticRegression(penalty="l2", dual=True, C=1)
+clf3 = LogisticRegression(penalty="l2", dual=True, C=5)
+classifiers = [clf1, clf2, clf3]
 
-# 1. Get matrice
-## first classifier
-train_X1 = [ row[1][0:1]+row[1][2:]  for row in train1]
-train_y = [ row[0]  for row in train1]
-test_X1 = [ row[1][0:1]+row[1][2:]  for row in test1]
-test_y = [ row[0]  for row in test1]
+gnb = GaussianNB()
+gnb.fit(train_X[2].toarray(), train_y)
+pre = gnb.predict(test_X[2])
+pre = gnb.predict(test_X[2].toarray())
+result1 = misc.evaluation(pre.tolist(), test_y)
 
-train_X1 = np.array(train_X1)
-test_X1 = np.array(test_X1)
-train_y = np.array(train_y)
-test_y = np.array(test_y)
+score_logit = misc.testCV(gnb, train_X_tot_arr, train_y, 5)
 
-## second classifier
-train_X2 = []
-test_X2 = []
-for item in train2:
-	dic = {}
-	for tag in item[1]:
-		dic[tag] = 1 if  tag not in dic else dic[tag]+1
-	train_X2.append(dic)
+reload(DCS)
+dcs = DCS.dynamicClassifierSelection(train_X, test_X, train_y, test_y, classifiers)
 
-for item in test2:
-	dic = {}
-	for tag in item[1]:
-		dic[tag] = 1 if  tag not in dic else dic[tag]+1
-	test_X2.append(dic)
+dcs.fold_tr = fold_tr 
+dcs.fold_val = fold_val 
+dcs.fold_total = fold_total
+dcs.fold_y = fold_y 
+dcs.knn = knn
+dcs.knn2  = knn2
 
-dicVectorizer = DictVectorizer(sparse=False)
-train_X2 = dicVectorizer.fit_transform(train_X2)
-dicVectorizer = DictVectorizer(sparse=False)
-test_X2 = dicVectorizer.fit_transform(test_X2)
+dcs.oracle(n=2)
 
-## thrid classifier
-train_text, train_y3 = misc.getTextAndLabel(train3)
-test_text, test_y3 = misc.getTextAndLabel(test3)
+knn = dcs.knn
+knn2 = dcs.knn2 
 
-vectorizer = TfidfVectorizer(analyzer='word', stop_words='english', lowercase=True, sublinear_tf=True, tokenizer=misc.LemmaTokenizer(), ngram_range=(1,2))
+dcs.splitData()
+dcs.knn = knn
+a=dcs.chooseFold(n=0)
+a=dcs.chooseFold2(n=0)
+train_X_tr, train_X_val, train_X_total, train_y_tr_val=dcs.chooseFold(n=2)
 
-vectorizer.fit(train_text)
+# knn = dcs.knn
+posterior
+result_prior = dcs.prob_selection(n=0, estimator="priori", K=15, threshold=0.1, second=False)
+eval_prior = misc.evaluation2(result_prior, test_y, process=True)
 
-train_X3 = vectorizer.transform(train_text)
-test_X3 = vectorizer.transform(test_text)
+result_posterior = dcs.prob_selection(n=0, estimator="posterior", K=15, threshold=0.1, second=False)
+eval_posterior = misc.evaluation2(result_posterior, test_y, process=True)
 
-ch2, train_X3_ch2, test_X3_ch2 = fs.chisq(train_X3, train_y3, test_X3, 20000)
+result_ola = dcs.OLA(n=0, K=15, second=False)
+eval_ola = misc.evaluation2(result_ola, test_y, process=True)
+
+result_lca = dcs.LCA(n=0, K=20, second=False)
+eval_lca = misc.evaluation2(result_lca, test_y, process=True)
+
+prediction_prob = np.array([row.tolist()[0] for row in result_ola[1]])
+dcs.oracle(n=2)
+
+result_prior[1]
+a = [row.tolist()[0] for row in result_prior[1]]
+a = np.array(a)
+[:,1]
+fpr, tpr, thresholds = roc_curve(test_y, a[:, 1])
+   roc_auc = auc(fpr, tpr)
 
 
-train_X1 = sparse.csr_matrix(train_X1)
-train_X1 = train_X1.toarray()
 
-train_X_tot = sparse.hstack((sparse.csr_matrix(train_X1), sparse.csr_matrix(train_X2), train_X3_ch2))
-test_X_tot = sparse.hstack((sparse.csr_matrix(test_X1), sparse.csr_matrix(test_X2), test_X3_ch2))
+
 
 #2. Classifier
 logit1 = LogisticRegression(penalty="l2", dual=False, C=1)
-logit1.fit(train_X1, train_y)
+logit1.fit(train_X[0], train_y)
+logit1.score(rain_X[0], train_y)
 
 logit2 = LogisticRegression(penalty="l2", dual=True, C=1)
 logit2.fit(train_X2, train_y)
@@ -109,6 +132,11 @@ result3 = misc.evaluation(predict3.tolist(), test_y)
 # Total Accuracy: 0.76086 
 # 0-label Accuracy: 0.77592 (4536 / 5846)
 # 1-label Accuracy: 0.68458 (790 / 1154)
+svm1 = svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500, probability=True)
+svm1.fit(train_X1, train_y)
+predict1_svm_prob = svm1.predict_proba(test_X1)
+predict1_svm = svm1.predict(test_X1)
+result_svm = misc.evaluation(predict1_svm.tolist(), test_y)
 
 predict1_prob = logit1.predict_proba(test_X1)
 predict2_prob = logit2.predict_proba(test_X2)
@@ -141,13 +169,33 @@ def majority_prob(predict1_prob, predict2_prob, predict3_prob, w):
 
 
 train_X_tot
-
-score_logit = misc.testCV(logit5, train_X_tot, train_y, 5)
+gnb = GaussianNB()
+gnb.fit(train_X1)
+score_logit = misc.testCV(gnb, train_X_tot_arr, train_y, 5)
 
 logit5 = LogisticRegression(penalty="l2", dual=False, C=10)
 logit5.fit(train_X_tot, train_y)
 predict5 = logit5.predict(test_X_tot)
 result5 = misc.evaluation(predict5.tolist(), test_y)
+
+
+final =[]
+for i in range(len(result1)):
+	tp = (result1[i][2],result2[i][2],result3[i][2])
+	if True in tp:
+		final.append(True)
+	else:
+		final.append(False)
+final
+test_X_tot
+train_X_tot_arr = train_X_tot.toarray()
+test_X_tot_arr = test_X_tot.toarray()
+start_time = time.time()
+gnb = GaussianNB()
+nbrs = NearestNeighbors(n_neighbors=10, algorithm='ball_tree').fit(train_X_tot_arr)
+print("--- %s seconds ---" % (time.time() - start_time))
+distances, indices = nbrs.kneighbors(test_X_tot_arr[0])
+
 # logit_grid = LogisticRegressionCV(Cs=[2000, 2500, 3000, 3500, 4000], cv=5, dual=False, penalty="l2")
 # logit_grid.fit(train_X3_ch2, train_y)
 

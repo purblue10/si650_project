@@ -93,8 +93,8 @@ def form_matrix(inFile, k=0, type=0):
 				clf3.append(toAdd3)
 			else:
 				break
-	print("Numer of lines: %d lines" % (count))
-	print("--- %s seconds ---" % (time.time() - start_time))
+	# print("Numer of lines: %d lines" % (count))
+	# print("--- %s seconds ---" % (time.time() - start_time))
 	if(type==0):
 		return clf1, clf2, clf3
 	elif(type==1):
