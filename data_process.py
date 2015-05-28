@@ -13,6 +13,7 @@ import random
 import numpy
 import time
 import misc
+import math
 
 def form_matrix(inFile, k=0, type=0):
 	if type>3 or type<0:
@@ -104,7 +105,107 @@ def form_matrix(inFile, k=0, type=0):
 	elif(type==3):
 		return clf3
 
+def roundNumber(num):
+	integer = int(num)
+	decimal = num-integer
+	if decimal < 0.25:
+		decimal = 0.0
+	elif decimal >=0.25 and decimal < 0.75:
+		decimal = 0.5
+	else:
+		decimal = 1.0
+	return float(integer) + decimal
 
+
+def form_matrix_round(inFile, k=0, type=0):
+	if type>3 or type<0:
+		print "type value error (should be 0, 1, 2, or 3)"
+		return None
+	start_time = time.time()
+	count = 0
+	clf1 = []
+	clf2 = []
+	clf3 = []
+	with open(inFile) as data_file:
+		data = data_file.readline()
+		while data:
+			#print data
+			if k == 0 or count < k: 
+				data_json = json.loads(data)
+				tid = data_json['tid']
+				toAdd1 = [0, []]
+				toAdd2 = [0, []]
+				toAdd3 = {'label':0, 'text':[], 'tid':tid, }
+				if data_json['hotness'] != 'cold-chili':
+					toAdd1[0] = toAdd2[0] =  1
+					toAdd3['label'] = 1
+				toAdd1[1].append(roundNumber(float(data_json['quality'])))
+				# toAdd1[1].append(data_json['avg_grade'])
+				toAdd1[1].append(roundNumber(float(data_json['helpfulness'])))
+				toAdd1[1].append(roundNumber(float(data_json['clarity'])))
+				toAdd1[1].append(roundNumber(float(data_json['easiness'])))
+				Interest = 0
+				TextBookUse = 0
+				TakenCredit = 0
+				NumRate = 0
+				for rating in data_json['ratings']:
+					if rating['teacherRatingTags']:
+						toAdd2[1] += rating['teacherRatingTags']
+
+					if rating['rInterest'] == 'Meh':
+						Interest += 1.0
+					elif rating['rInterest'] == 'Low':
+						Interest += 2.0
+					elif rating['rInterest'] == 'Sorta interested':
+						Interest += 3.0
+					elif rating['rInterest'] == 'Really into it':
+						Interest += 4.0
+					elif rating['rInterest'] == 'It\'s my life':
+						Interest += 5.0
+					
+					if rating['rTextBookUse'] == 'What textbook?':
+						TextBookUse += 1.0
+					elif rating['rTextBookUse'] == 'Barely cracked it open':
+						TextBookUse += 2.0
+					elif rating['rTextBookUse'] == 'You need it sometimes':
+						TextBookUse += 3.0
+					elif rating['rTextBookUse'] == 'It\'s a must have':
+						TextBookUse += 4.0
+					elif rating['rTextBookUse'] == 'Essential to passing':
+						TextBookUse += 5.0
+
+					if rating['takenForCredit'] != 'Yes':
+						TakenCredit += 1.0
+					
+					if type==0 or type==3:
+						comment = misc.setenceProcessing(rating['rComments'])
+						tp = (comment, rating['helpCount'], rating['notHelpCount'])
+						toAdd3['text'].append(tp)
+
+					NumRate += 1.0
+
+				toAdd1[1].append(roundNumber((Interest/NumRate)))
+				toAdd1[1].append(roundNumber((TextBookUse/NumRate)))
+				toAdd1[1].append(TakenCredit/NumRate)
+				toAdd1[1].append(math.log(NumRate)+1)
+
+				data = data_file.readline()
+				count += 1
+				clf1.append(toAdd1)
+				clf2.append(toAdd2)
+				clf3.append(toAdd3)
+			else:
+				break
+	# print("Numer of lines: %d lines" % (count))
+	# print("--- %s seconds ---" % (time.time() - start_time))
+	if(type==0):
+		return clf1, clf2, clf3
+	elif(type==1):
+		return clf1
+	elif(type==2):
+		return clf2
+	elif(type==3):
+		return clf3
 
 # mtx1, mtx2, mtx3 = form_matrix('umich.json', 1)
 # print mtx1
@@ -118,7 +219,9 @@ def form_matrix(inFile, k=0, type=0):
 # warm-chili: 8888
 # steamy-chili: 589
 # scorching-chili: 184
-
+# len(data[u'186093']['ratings'])
+# stat = [  len(data[key]['ratings']) for key in data.keys()]
+# numpy.sd(stat)
 def getTrainTestPairs(path):
 	reader = open(path, 'r')
 	hotness_tid = {}

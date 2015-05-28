@@ -34,11 +34,12 @@ class LemmaTokenizer(object):
 
 # train: category, text
 # text: id, text
-train_path = "./data/train.json"
-test_path = "./data/test.json"
 
-train = dp.form_matrix(train_path, type=3)
-test = dp.form_matrix(test_path, type=3)
+train_path = "./data/data2/train.json"
+test_path = "./data/data2/test.json"
+
+train = dp.form_matrix(train_path, type=1)
+test = dp.form_matrix(test_path, type=1)
 
 
 train_text, train_y = misc.getTextAndLabel(train)

@@ -44,6 +44,41 @@ from sklearn.naive_bayes import GaussianNB
 train_path = "./data/data2/train.json"
 test_path = "./data/data2/test.json"
 
+train_X1 = dp.form_matrix_round(train_path, type=1)
+train_X1 = np.array([ row[1][0:1]+row[1][2:]  for row in train_X1])
+test_X1 = dp.form_matrix_round(test_path, type=1)
+test_X1 = np.array([ row[1][0:1]+row[1][2:]  for row in test_X1])
+
+clf1 = LogisticRegression(penalty="l2", dual=False, C=1000)
+score_logit = misc.testCV(clf1, train_X1, train_y, 5)
+
+tr1= train_X1[:,[0,3,4,5,6]]
+tr1[:,-1]=np.log(tr1[:,-1]+1)
+te1 = test_X1[:,[0,3,4,5,6]]
+te1[:,-1]=np.log(te1[:,-1]+1)
+
+clf1 = LogisticRegression(penalty="l2", dual=False, C=1000)
+score_logit = misc.testCV(clf1, tr1, train_y, 5)
+
+tr1= train_X[0][:,[0,3,4,5,6,7]]
+tr1[:,-1]=np.log(tr1[:,-1]+1)
+te1 = test_X[0][:,[0,3,4,5,6,7]]
+te1[:,-1]=np.log(te1[:,-1]+1)
+clf1 = LogisticRegression(penalty="l2", dual=False, C=10)
+clf1.fit(tr1, train_y)
+pre = clf1.predict(te1)
+result1 = misc.evaluation(pre.tolist(), test_y)
+
+
+clf1 = LogisticRegression(penalty="l2", dual=False, C=1000)
+score_logit = misc.testCV(clf1, train_X[0], train_y, 5)
+clf1.fit(train_X[0], train_y)
+pre = clf1.predict(test_X[0])
+result1 = misc.evaluation(pre.tolist(), test_y)
+
+x =     train_X[0]
+adjusted_mutual_info_score([0, 0, 1, 1], [0, 0, 1, 1])
+
 ## get data
 train_X, test_X, train_y, test_y = misc.getData(train_path, test_path, typenum=0)
 
@@ -54,6 +89,7 @@ classifiers = [clf1, clf2, clf3]
 
 gnb = GaussianNB()
 gnb.fit(train_X[2].toarray(), train_y)
+clf1.fit(train_X[0], train_y)
 pre = gnb.predict(test_X[2])
 pre = gnb.predict(test_X[2].toarray())
 result1 = misc.evaluation(pre.tolist(), test_y)
@@ -105,8 +141,73 @@ a = np.array(a)
 fpr, tpr, thresholds = roc_curve(test_y, a[:, 1])
    roc_auc = auc(fpr, tpr)
 
+train_X, test_X, train_y, test_y = misc.getData(train_path, test_path, typenum=0)
+
+a,b=train_X, test_X
+
+train_X[0]= train_X[0][:,[0,3,4,5,6,7]]
+train_X[0][:,-1]=np.log(train_X[0][:,-1]+1)
+test_X[0] = test_X[0][:,[0,3,4,5,6,7]]
+test_X[0][:,-1]=np.log(test_X[0][:,-1]+1)
 
 
+tr1 = np.hstack((train_X[0], train_X[1], train_X[2].toarray))
+tr2  = np.hstack((train_X[1], train_X[2].toarray()))
+tr3 = np.hstack((train_X[0], train_X[2].toarray()))
+tr4 = np.hstack((train_X[0], train_X[1]))
+
+te1 = np.hstack((test_X[0], test_X[1], test_X[2].toarray()))
+te2  = np.hstack((test_X[1], test_X[2].toarray()))
+te3 = np.hstack((test_X[0], test_X[2].toarray()))
+te4 = np.hstack((test_X[0], test_X[1]))
+
+
+from sklearn.naive_bayes import MultinomialNB
+# clf = MultinomialNB()
+# clf = LogisticRegression(penalty="l2", dual=False, C=100)
+clf = svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500)
+clf.fit(tr1, train_y)
+predict = clf.predict(te1)
+result = misc.evaluation(predict.tolist(), test_y)
+
+# no numeric
+# clf = MultinomialNB()
+# clf = GaussianNB()
+# clf = LogisticRegression(penalty="l2", dual=False, C=100)
+clf = svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500)
+clf.fit(tr2 , train_y)
+predict = clf.predict(te2)
+result = misc.evaluation(predict.tolist(), test_y)
+
+#no tag
+# clf = MultinomialNB()
+# clf = GaussianNB()
+# clf = LogisticRegression(penalty="l2", dual=False, C=100)
+clf = svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500)
+clf.fit(tr3 , train_y)
+predict = clf.predict(te3)
+result = misc.evaluation(predict.tolist(), test_y)
+
+# no text
+# clf = MultinomialNB()
+# clf = GaussianNB()
+# clf = LogisticRegression(penalty="l2", dual=False, C=100)
+clf = svm.SVC(kernel='rbf', C=500, gamma=0.001, cache_size=500)
+clf.fit(tr4 , train_y)
+predict = clf.predict(te4)
+result = misc.evaluation(predict.tolist(), test_y)
+
+
+
+
+
+
+
+
+
+
+
+np.hstack((train_X[3][:,:8], train_X[3][:,28:]))
 
 
 #2. Classifier
